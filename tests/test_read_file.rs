@@ -3,7 +3,6 @@ use std::io::Error;
 use std::mem;
 use std::os::unix::io::AsRawFd;
 
-use libc::off_t;
 use liburing::*;
 
 const QUEUE_DEPTH: u32 = 4;
@@ -41,7 +40,7 @@ fn test_io_uring_read_file() {
         if sqe == std::ptr::null_mut() {
             break;
         }
-        unsafe { io_uring_prep_readv(sqe, file.as_raw_fd(), &mut iovecs[i], 1, offset as off_t) };
+        unsafe { io_uring_prep_readv(sqe, file.as_raw_fd(), &mut iovecs[i], 1, offset as _) };
         offset += READ_SIZE;
     }
     let ret = unsafe { io_uring_submit(&mut ring) };

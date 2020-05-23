@@ -4,7 +4,7 @@
 
 use std::mem::transmute;
 
-use libc::{c_int, c_uint, c_ushort, c_void, off_t};
+use libc::{c_int, c_uint, c_ushort, c_void};
 
 pub const LIBURING_UDATA_TIMEOUT: u64 = 0xFFFFFFFF_FFFFFFFF; // -1
 
@@ -88,7 +88,7 @@ pub unsafe fn io_uring_prep_rw(
     fd: c_int,
     addr: *const c_void,
     len: c_uint,
-    offset: off_t,
+    offset: u64,
 ) {
     (*sqe).opcode = op as u8;
     (*sqe).flags = 0;
@@ -109,7 +109,7 @@ pub unsafe fn io_uring_prep_readv(
     fd: c_int,
     iovecs: *const libc::iovec,
     nr_vecs: u32,
-    offset: off_t,
+    offset: u64,
 ) {
     io_uring_prep_rw(IORING_OP_READV, sqe, fd, transmute(iovecs), nr_vecs, offset);
 }
@@ -119,7 +119,7 @@ pub unsafe fn io_uring_prep_read_fixed(
     fd: i32,
     buf: *mut c_void,
     nbytes: u32,
-    offset: off_t,
+    offset: u64,
     buf_index: c_ushort,
 ) {
     io_uring_prep_rw(IORING_OP_READ_FIXED, sqe, fd, buf, nbytes, offset);
@@ -135,7 +135,7 @@ pub unsafe fn io_uring_prep_writev(
     fd: i32,
     iovecs: *const libc::iovec,
     nr_vecs: u32,
-    offset: off_t,
+    offset: u64,
 ) {
     io_uring_prep_rw(
         IORING_OP_WRITEV,
@@ -152,7 +152,7 @@ pub unsafe fn io_uring_prep_write_fixed(
     fd: i32,
     buf: *mut c_void,
     nbytes: u32,
-    offset: off_t,
+    offset: u64,
     buf_index: u16,
 ) {
     io_uring_prep_rw(IORING_OP_WRITE_FIXED, sqe, fd, buf, nbytes, offset);
@@ -161,6 +161,48 @@ pub unsafe fn io_uring_prep_write_fixed(
         .__bindgen_anon_1
         .__bindgen_anon_1
         .buf_index = buf_index;
+}
+
+pub unsafe fn io_uring_prep_accept(
+    sqe: *mut io_uring_sqe,
+    fd: i32,
+    addr: *mut libc::sockaddr,
+    addrlen: libc::socklen_t,
+    flags: u32,
+) {
+    io_uring_prep_rw(IORING_OP_ACCEPT, sqe, fd, addr as *mut _, 0, addrlen as _);
+    (*sqe).__bindgen_anon_3.accept_flags = flags;
+}
+
+pub unsafe fn io_uring_prep_connect(
+    sqe: *mut io_uring_sqe,
+    fd: i32,
+    addr: *mut libc::sockaddr,
+    addrlen: libc::socklen_t,
+) {
+    io_uring_prep_rw(IORING_OP_CONNECT, sqe, fd, addr as *mut _, 0, addrlen as _);
+}
+
+pub unsafe fn io_uring_prep_recv(
+    sqe: *mut io_uring_sqe,
+    fd: i32,
+    buf: *mut libc::c_void,
+    len: u32,
+    flags: u32,
+) {
+    io_uring_prep_rw(IORING_OP_RECV, sqe, fd, buf, len, 0);
+    (*sqe).__bindgen_anon_3.msg_flags = flags;
+}
+
+pub unsafe fn io_uring_prep_send(
+    sqe: *mut io_uring_sqe,
+    fd: i32,
+    buf: *const libc::c_void,
+    len: u32,
+    flags: u32,
+) {
+    io_uring_prep_rw(IORING_OP_SEND, sqe, fd, buf, len, 0);
+    (*sqe).__bindgen_anon_3.msg_flags = flags;
 }
 
 pub unsafe fn io_uring_prep_recvmsg(sqe: *mut io_uring_sqe, fd: i32, msg: *mut c_void, flags: u32) {
@@ -199,7 +241,7 @@ pub unsafe fn io_uring_prep_nop(sqe: *mut io_uring_sqe) {
 pub unsafe fn io_uring_prep_timeout(
     sqe: *mut io_uring_sqe,
     ts: *mut __kernel_timespec,
-    count: off_t,
+    count: u64,
 ) {
     io_uring_prep_rw(IORING_OP_TIMEOUT, sqe, 0, transmute(ts), 1, count);
 }
@@ -283,6 +325,14 @@ pub unsafe fn io_uring_wait_cqe(ring: *mut io_uring, cqe_ptr: *mut *mut io_uring
     }
 
     return __io_uring_get_cqe(ring, cqe_ptr, 0, 1, std::ptr::null_mut());
+}
+
+pub unsafe fn io_uring_wait_cqe_nr(
+    ring: *mut io_uring,
+    cqe_ptr: *mut *mut io_uring_cqe,
+    wait_nr: c_uint,
+) -> c_int {
+    return __io_uring_get_cqe(ring, cqe_ptr, 0, wait_nr, std::ptr::null_mut());
 }
 
 #[cfg(test)]
