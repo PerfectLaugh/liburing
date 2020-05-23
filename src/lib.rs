@@ -176,7 +176,7 @@ pub unsafe fn io_uring_prep_accept(
         fd,
         addr as *mut _,
         0,
-        addrlen as *mut _,
+        addrlen as _,
     );
     (*sqe).__bindgen_anon_3.accept_flags = flags;
 }
