@@ -33,7 +33,7 @@ fn test_io_uring_fsync() {
             panic!("free sqe missing");
         }
         io_uring_prep_nop(sqe);
-        io_uring_sqe_set_flags(sqe, IOSQE_IO_LINK);
+        io_uring_sqe_set_flags(sqe, 1 << IOSQE_IO_LINK_BIT);
 
         let sqe = io_uring_get_sqe(&mut ring);
         if sqe == std::ptr::null_mut() {
@@ -41,7 +41,7 @@ fn test_io_uring_fsync() {
         }
         io_uring_prep_nop(sqe);
         io_uring_prep_fsync(sqe, file.as_raw_fd(), IORING_FSYNC_DATASYNC);
-        io_uring_sqe_set_flags(sqe, IOSQE_IO_DRAIN);
+        io_uring_sqe_set_flags(sqe, 1 << IOSQE_IO_DRAIN_BIT);
         (*sqe).user_data = 1;
 
         let ret = io_uring_submit(&mut ring);

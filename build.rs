@@ -14,6 +14,11 @@ fn main() {
         .status()
         .expect("copy liburing to out_dir");
     Command::new("make")
+        .arg("config-host.mak")
+        .current_dir(format!("{}/lib", out_dir.clone()))
+        .status()
+        .expect("failed to run config-host.mak");
+    Command::new("make")
         .arg("liburing.a")
         .current_dir(format!("{}/lib/src", out_dir.clone()))
         .env("CFLAGS", "-fPIC")

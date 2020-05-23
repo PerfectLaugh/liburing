@@ -16,10 +16,7 @@ fn test_io_uring_two_init() {
             let mut s = mem::MaybeUninit::<io_uring>::uninit();
             let ret = io_uring_queue_init(QUEUE_DEPTH, s.as_mut_ptr(), 0);
             if ret < 0 {
-                panic!(
-                    "io_uring_queue_init: {:?}",
-                    Error::from_raw_os_error(ret)
-                );
+                panic!("io_uring_queue_init: {:?}", Error::from_raw_os_error(ret));
             }
             s.assume_init()
         }

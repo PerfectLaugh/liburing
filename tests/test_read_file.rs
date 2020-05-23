@@ -22,8 +22,7 @@ fn test_io_uring_read_file() {
 
     let file = File::open("/proc/self/exe").unwrap();
 
-    let mut iovecs: Vec<libc::iovec> =
-        vec![unsafe { mem::zeroed() }; QUEUE_DEPTH as usize];
+    let mut iovecs: Vec<libc::iovec> = vec![unsafe { mem::zeroed() }; QUEUE_DEPTH as usize];
     for iov in iovecs.iter_mut() {
         let buf = unsafe {
             let mut s = mem::MaybeUninit::<*mut libc::c_void>::uninit();
@@ -42,15 +41,7 @@ fn test_io_uring_read_file() {
         if sqe == std::ptr::null_mut() {
             break;
         }
-        unsafe {
-            io_uring_prep_readv(
-                sqe,
-                file.as_raw_fd(),
-                &mut iovecs[i],
-                1,
-                offset as off_t,
-            )
-        };
+        unsafe { io_uring_prep_readv(sqe, file.as_raw_fd(), &mut iovecs[i], 1, offset as off_t) };
         offset += READ_SIZE;
     }
     let ret = unsafe { io_uring_submit(&mut ring) };

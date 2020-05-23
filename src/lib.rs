@@ -94,14 +94,14 @@ pub unsafe fn io_uring_prep_rw(
     (*sqe).flags = 0;
     (*sqe).ioprio = 0;
     (*sqe).fd = fd;
-    (*sqe).off = transmute(offset);
-    (*sqe).addr = transmute(addr);
+    (*sqe).__bindgen_anon_1.off = transmute(offset);
+    (*sqe).__bindgen_anon_2.addr = transmute(addr);
     (*sqe).len = len;
-    (*sqe).__bindgen_anon_1.rw_flags = 0;
+    (*sqe).__bindgen_anon_3.rw_flags = 0;
     (*sqe).user_data = 0;
-    (*sqe).__bindgen_anon_2.__pad2[0] = 0;
-    (*sqe).__bindgen_anon_2.__pad2[1] = 0;
-    (*sqe).__bindgen_anon_2.__pad2[2] = 0;
+    (*sqe).__bindgen_anon_4.__pad2[0] = 0;
+    (*sqe).__bindgen_anon_4.__pad2[1] = 0;
+    (*sqe).__bindgen_anon_4.__pad2[2] = 0;
 }
 
 pub unsafe fn io_uring_prep_readv(
@@ -111,14 +111,7 @@ pub unsafe fn io_uring_prep_readv(
     nr_vecs: u32,
     offset: off_t,
 ) {
-    io_uring_prep_rw(
-        IORING_OP_READV,
-        sqe,
-        fd,
-        transmute(iovecs),
-        nr_vecs,
-        offset,
-    );
+    io_uring_prep_rw(IORING_OP_READV, sqe, fd, transmute(iovecs), nr_vecs, offset);
 }
 
 pub unsafe fn io_uring_prep_read_fixed(
@@ -130,7 +123,11 @@ pub unsafe fn io_uring_prep_read_fixed(
     buf_index: c_ushort,
 ) {
     io_uring_prep_rw(IORING_OP_READ_FIXED, sqe, fd, buf, nbytes, offset);
-    (*sqe).__bindgen_anon_2.buf_index = buf_index;
+    (*sqe)
+        .__bindgen_anon_4
+        .__bindgen_anon_1
+        .__bindgen_anon_1
+        .buf_index = buf_index;
 }
 
 pub unsafe fn io_uring_prep_writev(
@@ -159,17 +156,16 @@ pub unsafe fn io_uring_prep_write_fixed(
     buf_index: u16,
 ) {
     io_uring_prep_rw(IORING_OP_WRITE_FIXED, sqe, fd, buf, nbytes, offset);
-    (*sqe).__bindgen_anon_2.buf_index = buf_index;
+    (*sqe)
+        .__bindgen_anon_4
+        .__bindgen_anon_1
+        .__bindgen_anon_1
+        .buf_index = buf_index;
 }
 
-pub unsafe fn io_uring_prep_recvmsg(
-    sqe: *mut io_uring_sqe,
-    fd: i32,
-    msg: *mut c_void,
-    flags: u32,
-) {
+pub unsafe fn io_uring_prep_recvmsg(sqe: *mut io_uring_sqe, fd: i32, msg: *mut c_void, flags: u32) {
     io_uring_prep_rw(IORING_OP_RECVMSG, sqe, fd, msg, 1, 0);
-    (*sqe).__bindgen_anon_1.msg_flags = flags;
+    (*sqe).__bindgen_anon_3.msg_flags = flags;
 }
 
 pub unsafe fn io_uring_prep_sendmsg(
@@ -179,32 +175,21 @@ pub unsafe fn io_uring_prep_sendmsg(
     flags: u32,
 ) {
     io_uring_prep_rw(IORING_OP_SENDMSG, sqe, fd, msg, 1, 0);
-    (*sqe).__bindgen_anon_1.msg_flags = flags;
+    (*sqe).__bindgen_anon_3.msg_flags = flags;
 }
 
-pub unsafe fn io_uring_prep_poll_add(
-    sqe: *mut io_uring_sqe,
-    fd: i32,
-    poll_mask: u16,
-) {
+pub unsafe fn io_uring_prep_poll_add(sqe: *mut io_uring_sqe, fd: i32, poll_mask: u16) {
     io_uring_prep_rw(IORING_OP_POLL_ADD, sqe, fd, std::ptr::null(), 0, 0);
-    (*sqe).__bindgen_anon_1.poll_events = poll_mask;
+    (*sqe).__bindgen_anon_3.poll_events = poll_mask;
 }
 
-pub unsafe fn io_uring_prep_poll_remove(
-    sqe: *mut io_uring_sqe,
-    user_data: *mut c_void,
-) {
+pub unsafe fn io_uring_prep_poll_remove(sqe: *mut io_uring_sqe, user_data: *mut c_void) {
     io_uring_prep_rw(IORING_OP_POLL_REMOVE, sqe, 0, user_data, 0, 0);
 }
 
-pub unsafe fn io_uring_prep_fsync(
-    sqe: *mut io_uring_sqe,
-    fd: i32,
-    fsync_flags: u32,
-) {
+pub unsafe fn io_uring_prep_fsync(sqe: *mut io_uring_sqe, fd: i32, fsync_flags: u32) {
     io_uring_prep_rw(IORING_OP_FSYNC, sqe, fd, std::ptr::null(), 0, 0);
-    (*sqe).__bindgen_anon_1.fsync_flags = fsync_flags;
+    (*sqe).__bindgen_anon_3.fsync_flags = fsync_flags;
 }
 
 pub unsafe fn io_uring_prep_nop(sqe: *mut io_uring_sqe) {
@@ -220,8 +205,7 @@ pub unsafe fn io_uring_prep_timeout(
 }
 
 pub unsafe fn io_uring_sq_space_left(ring: *const io_uring) -> u32 {
-    return (*ring).sq.kring_entries as u32
-        - ((*ring).sq.sqe_tail - (*ring).sq.sqe_head);
+    return (*ring).sq.kring_entries as u32 - ((*ring).sq.sqe_tail - (*ring).sq.sqe_head);
 }
 
 pub unsafe fn io_uring_cq_ready(ring: *mut io_uring) -> u32 {
@@ -230,10 +214,7 @@ pub unsafe fn io_uring_cq_ready(ring: *mut io_uring) -> u32 {
     return tail - *(*ring).cq.khead;
 }
 
-unsafe fn __io_uring_peek_cqe(
-    ring: *mut io_uring,
-    cqe_ptr: *mut *mut io_uring_cqe,
-) -> c_int {
+unsafe fn __io_uring_peek_cqe(ring: *mut io_uring, cqe_ptr: *mut *mut io_uring_cqe) -> c_int {
     let mut cqe: *mut io_uring_cqe;
     let mut err: c_int = 0;
 
@@ -246,7 +227,10 @@ unsafe fn __io_uring_peek_cqe(
         let tail: c_uint;
         io_uring_smp_load_acquire!((*ring).cq.ktail, tail);
         cqe = if head != tail {
-            (*ring).cq.cqes.offset((head & *(*ring).cq.kring_mask) as isize)
+            (*ring)
+                .cq
+                .cqes
+                .offset((head & *(*ring).cq.kring_mask) as isize)
         } else {
             std::ptr::null_mut()
         };
@@ -279,10 +263,7 @@ unsafe fn __io_uring_peek_cqe(
  * Return an IO completion, if one is readily available. Returns 0 with
  * cqe_ptr filled in on success, -errno on failure.
  */
-pub unsafe fn io_uring_peek_cqe(
-    ring: *mut io_uring,
-    cqe_ptr: *mut *mut io_uring_cqe,
-) -> c_int {
+pub unsafe fn io_uring_peek_cqe(ring: *mut io_uring, cqe_ptr: *mut *mut io_uring_cqe) -> c_int {
     let err: i32 = __io_uring_peek_cqe(ring, cqe_ptr);
     if err != 0 {
         return err;
@@ -295,10 +276,7 @@ pub unsafe fn io_uring_peek_cqe(
  * Return an IO completion, waiting for it if necessary. Returns 0 with
  * cqe_ptr filled in on success, -errno on failure.
  */
-pub unsafe fn io_uring_wait_cqe(
-    ring: *mut io_uring,
-    cqe_ptr: *mut *mut io_uring_cqe,
-) -> c_int {
+pub unsafe fn io_uring_wait_cqe(ring: *mut io_uring, cqe_ptr: *mut *mut io_uring_cqe) -> c_int {
     let err = __io_uring_peek_cqe(ring, cqe_ptr);
     if err != 0 {
         return err;
@@ -322,10 +300,7 @@ mod tests {
             let mut s = mem::MaybeUninit::<io_uring>::uninit();
             let ret = io_uring_queue_init(QUEUE_DEPTH, s.as_mut_ptr(), 0);
             if ret < 0 {
-                panic!(
-                    "io_uring_queue_init: {:?}",
-                    Error::from_raw_os_error(ret)
-                );
+                panic!("io_uring_queue_init: {:?}", Error::from_raw_os_error(ret));
             }
             s.assume_init()
         };
@@ -348,10 +323,7 @@ mod tests {
         for _ in 0..pending {
             let ret = unsafe { io_uring_wait_cqe(&mut ring, &mut cqe) };
             if ret < 0 {
-                panic!(
-                    "io_uring_wait_cqe: {:?}",
-                    Error::from_raw_os_error(ret)
-                );
+                panic!("io_uring_wait_cqe: {:?}", Error::from_raw_os_error(ret));
             }
             // done += 1;
             if unsafe { (*cqe).res } < 0 {
