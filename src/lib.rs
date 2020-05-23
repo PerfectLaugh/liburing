@@ -167,17 +167,24 @@ pub unsafe fn io_uring_prep_accept(
     sqe: *mut io_uring_sqe,
     fd: i32,
     addr: *mut libc::sockaddr,
-    addrlen: libc::socklen_t,
+    addrlen: *mut libc::socklen_t,
     flags: u32,
 ) {
-    io_uring_prep_rw(IORING_OP_ACCEPT, sqe, fd, addr as *mut _, 0, addrlen as _);
+    io_uring_prep_rw(
+        IORING_OP_ACCEPT,
+        sqe,
+        fd,
+        addr as *mut _,
+        0,
+        addrlen as *mut _,
+    );
     (*sqe).__bindgen_anon_3.accept_flags = flags;
 }
 
 pub unsafe fn io_uring_prep_connect(
     sqe: *mut io_uring_sqe,
     fd: i32,
-    addr: *mut libc::sockaddr,
+    addr: *const libc::sockaddr,
     addrlen: libc::socklen_t,
 ) {
     io_uring_prep_rw(IORING_OP_CONNECT, sqe, fd, addr as *mut _, 0, addrlen as _);
