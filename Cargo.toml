@@ -7,10 +7,10 @@ edition = "2018"
 license = "MIT/Apache-2.0"
 publish = true
 repository = "https://github.com/sitano/liburing"
-version = "0.0.2"
+version = "0.0.3"
 
 [build-dependencies]
-bindgen = "0.51.1"
+bindgen = "0.54"
 
 [dependencies]
-libc = "0.2.62"
+libc = "0.2"
