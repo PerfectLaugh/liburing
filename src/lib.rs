@@ -242,8 +242,10 @@ pub unsafe fn io_uring_prep_timeout(
     sqe: *mut io_uring_sqe,
     ts: *mut __kernel_timespec,
     count: u64,
+    flags: u32,
 ) {
     io_uring_prep_rw(IORING_OP_TIMEOUT, sqe, -1, transmute(ts), 1, count);
+    (*sqe).__bindgen_anon_3.timeout_flags = flags;
 }
 
 pub unsafe fn io_uring_sq_space_left(ring: *const io_uring) -> u32 {
