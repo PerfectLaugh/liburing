@@ -243,7 +243,7 @@ pub unsafe fn io_uring_prep_timeout(
     ts: *mut __kernel_timespec,
     count: u64,
 ) {
-    io_uring_prep_rw(IORING_OP_TIMEOUT, sqe, 0, transmute(ts), 1, count);
+    io_uring_prep_rw(IORING_OP_TIMEOUT, sqe, -1, transmute(ts), 1, count);
 }
 
 pub unsafe fn io_uring_sq_space_left(ring: *const io_uring) -> u32 {
