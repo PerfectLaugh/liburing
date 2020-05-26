@@ -34,6 +34,7 @@ fn main() {
     // Generate bindings
     let bindings = bindgen::Builder::default()
         .whitelist_function("__io_uring.*")
+        .whitelist_function("__sys_io_uring.*")
         .whitelist_function("io_uring.*")
         .whitelist_var("IORING.*")
         .whitelist_var("IOSQE.*")
