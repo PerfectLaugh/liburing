@@ -248,6 +248,18 @@ pub unsafe fn io_uring_prep_timeout(
     (*sqe).__bindgen_anon_3.timeout_flags = flags;
 }
 
+pub unsafe fn io_uring_prep_timeout_remove(sqe: *mut io_uring_sqe, user_data: u64, flags: u32) {
+    io_uring_prep_rw(
+        IORING_OP_TIMEOUT_REMOVE,
+        sqe,
+        -1,
+        transmute(user_data),
+        0,
+        0,
+    );
+    (*sqe).__bindgen_anon_3.timeout_flags = flags;
+}
+
 pub unsafe fn io_uring_sq_space_left(ring: *const io_uring) -> u32 {
     return (*ring).sq.kring_entries as u32 - ((*ring).sq.sqe_tail - (*ring).sq.sqe_head);
 }
